@@ -3,6 +3,7 @@
 #include "MS5837.h"
 #include "ST7735.h"
 #include "utilities.h"
+#include "bitmaps.h"
 
 struct io_descriptor *io_i2c;
 
@@ -124,6 +125,10 @@ void run_dive_computer()
 	unsigned char* buffer[40] = {};
 	unsigned char* acceleration_string[100] = {};
 	unsigned char* MS5837_output_string[100] = {};
+		
+	ST7735_drawBitmap(0, 0, splashscreen, 128, 128, ST7735_WHITE);
+	delay(5000);
+	fillScreen(ST7735_BLACK);
 
 	while(1)
 	{

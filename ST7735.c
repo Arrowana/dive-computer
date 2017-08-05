@@ -438,6 +438,20 @@ void ST7735_print(unsigned char* string)
 	} while (*++string);
 }
 
+void ST7735_drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color)
+{
+    int16_t byteWidth = (w + 7) / 8; // Bitmap scanline pad = whole byte
+    uint8_t byte = 0;
+
+    for(int16_t j=0; j<h; j++, y++) {
+        for(int16_t i=0; i<w; i++) {
+            if(i & 7) byte <<= 1;
+            else      byte   = bitmap[j * byteWidth + i / 8];
+            if(byte & 0x80) drawPixel(x+i, y, color);
+        }
+    }
+}
+
 void write(uint8_t c)
 {
 	if(c == '\n')

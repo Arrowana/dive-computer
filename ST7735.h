@@ -119,5 +119,6 @@ void ST7735_init();
 void ST7735_backLight(uint8_t on);
 void ST7735_set_text_size(uint8_t new_text_size);
 void ST7732_set_cursor(uint8_t x, uint8_t y);
+void ST7735_drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color);
 
 #endif
