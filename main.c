@@ -4,41 +4,14 @@
 #include "ST7735.h"
 #include "utilities.h"
 #include "bitmaps.h"
+#include "math.h"
+#include "hpl_irq.h"
+#include "logging.h"
+#include "test_spi_flash.h"
 
 struct io_descriptor *io_i2c;
 
-//Read accelerometer in a loop to check readings
-void lsm303_test()
-{
-	i2c_init();
-	LSM303_init();
-	vector_type acceleration_vector;
-	LSM303STATUS status = FAILURE;
-	
-	for(;;) {
-		status = read_accelerometer(&acceleration_vector);
-	}	
-}
-
-void ms5837_test()
-{
-	i2c_init();
-	I2C_0.slave_addr = 0b1110110;
-
-	uint8_t reg = 0b00011110; //RESET
-	uint32_t ret = io_i2c->write(io_i2c, &reg, 1);
-	
-	uint8_t measurement[3] = {0, 0, 0};
-	for(;;) {
-		reg = 0b01001000;  //CONVERT
-		ret = io_i2c->write(io_i2c, &reg, 1);
-		reg = 0b00000000; //READ ADC
-		ret = io_i2c->write(io_i2c, &reg, 1);
-		//Wait for conversion
-		delay(50);
-		uint8_t read_ret = i2c_m_sync_cmd_read(&I2C_0, 0x00, measurement);
-	}
-}
+//#define LSM303_ENABLE
 
 void i2c_init()
 {
@@ -50,12 +23,34 @@ void spi_init()
 {
 	spi_m_sync_get_io_descriptor(&SPI_0, &io_lcd_spi);
 	spi_m_sync_enable(&SPI_0);
-	//Next line seems to break stuff
-	//spi_m_sync_set_data_order(&SPI_0, SPI_DATA_ORDER_MSB_1ST);
+}
+
+//Read accelerometer in a loop to check readings
+void test_lsm303()
+{
+	i2c_init();
+	LSM303_init();
+	vector_type acceleration_vector;
+	LSM303STATUS status = FAILURE;
+	
+	for(;;) {
+		status = read_accelerometer(&acceleration_vector);
+	}	
+}
+
+void test_ms5837()
+{
+	i2c_init();
+	MS5837_init();
+	
+	MS5837_measurements temp_pressure;
+	for(;;) {
+		MS5857_get_measurements(ADC_4096, &temp_pressure);
+	}
 }
 
 //Write hello world on MOSI
-void spi_test()
+void test_spi()
 {
 	spi_m_sync_get_io_descriptor(&SPI_0, &io_lcd_spi);
 	
@@ -67,8 +62,7 @@ void spi_test()
 	}
 }
 
-//Try to display basic stuff on the screen
-void screen_test()
+void test_screen()
 {
 	spi_init();
 	initR(INITR_144GREENTAB);
@@ -98,7 +92,10 @@ void peripherals_init()
 void sensors_init()
 {
 	MS5837_init();
+	
+#ifdef LSM303_ENABLE
 	LSM303_init();
+#endif
 }
 
 void screen_init()
@@ -108,6 +105,22 @@ void screen_init()
 	fillScreen(ST7735_BLACK);
 	//ST7735_backLight(1);
 }
+
+int32_t pressure_to_depth(int32_t pressure_hpa, unsigned char* depth_string)
+{
+	//From stackoverflow https://stackoverflow.com/questions/905928/using-floats-with-sprintf-in-embedded-c
+	float_t depth = (pressure_hpa - 100000) / 1030 / 9.81;
+
+	char *tmpSign = (depth < 0) ? "-" : "";
+	float tmpVal = (depth < 0) ? -depth : depth;
+
+	int tmpInt1 = tmpVal;                  // Get the integer (678).
+	float tmpFrac = tmpVal - tmpInt1;      // Get fraction (0.0123).
+	int tmpInt2 = tmpFrac * 100;  // Turn into integer (123).
+
+	// Print as parts, note that you need 0-padding for fractional bit.
+	sprintf(depth_string, "Depth: %s%d.%02d m\n", tmpSign, tmpInt1, tmpInt2);
+} 
 
 //Dive computer program entry
 void run_dive_computer()
@@ -125,6 +138,7 @@ void run_dive_computer()
 	unsigned char* buffer[40] = {};
 	unsigned char* acceleration_string[100] = {};
 	unsigned char* MS5837_output_string[100] = {};
+	unsigned char* depth_string[20] = {};
 		
 	ST7735_drawBitmap(0, 0, splashscreen, 128, 128, ST7735_WHITE);
 	delay(5000);
@@ -147,15 +161,23 @@ void run_dive_computer()
 		}
 
 		MS5857_get_measurements(ADC_4096, &temp_pressure);
+
+	#ifdef LSM303_ENABLE
 		status = read_accelerometer(&acceleration_vector);
-
 		sprintf(acceleration_string, "ACC \nx:%d \ny:%d \nz:%d\n", acceleration_vector.x, acceleration_vector.y, acceleration_vector.z);
-		sprintf(MS5837_output_string, "MS5837 \nT:%d degC\nP:%d .1mbar\n", temp_pressure.temperature, temp_pressure.pressure);
+	#else
+		sprintf(acceleration_string, "ACC \nOFF\n\n\n");
+	#endif
 
+		sprintf(MS5837_output_string, "MS5837 \nT:%d degC\nP:%d .1mbar\n", temp_pressure.temperature, temp_pressure.pressure);
+		pressure_to_depth(temp_pressure.pressure * 10, depth_string);
+		
 		ST7735_set_text_size(1);
 		ST7735_print(acceleration_string);
 		ST7735_print("\n");
 		ST7735_print(MS5837_output_string);
+		ST7735_print("\n");
+		ST7735_print(depth_string);
 	}
 }
 
@@ -173,13 +195,30 @@ void delay_test()
 	}
 }
 
-int main(void)
+volatile uint32_t ticks = 0;
+void SysTick_Handler(void)
 {
+	ticks++;
+}
+
+void test_systick()
+{
+	SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk; //Disable systick
+	uint32_t state = SysTick_Config(26000000/100);
+	for(;;)
+	{
+		uint32_t tick = SysTick->VAL;
+	}
+}
+
+int main(void)
+{	
 	//Maximum hack to unfuck SPI
 	uint8_t* spi_module_enable = 0x40006018;
 	*spi_module_enable = 0x00;
 	
 	/* Initializes MCU, drivers and middleware */
 	atmel_start_init();
+
 	run_dive_computer();
 }
