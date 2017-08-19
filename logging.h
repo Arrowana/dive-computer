@@ -3,7 +3,7 @@
 
 #include "spi_flash.h"
 
-#define MAX_DIVE_RECORDS 1000
+#define MAX_DIVE_RECORDS    100
 
 struct dive_record
 {
@@ -19,7 +19,7 @@ struct logger
 };
 
 void init_logger();
-void log_dive_record(struct dive_record* record);
+uint8_t log_dive_record(struct dive_record* record);
 void log_erase();
 
 #endif
