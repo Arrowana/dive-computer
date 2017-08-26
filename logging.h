@@ -3,10 +3,11 @@
 
 #include "spi_flash.h"
 
-#define MAX_DIVE_RECORDS    100
+#define MAX_DIVE_RECORDS    (2000)
 
 struct dive_record
 {
+	uint8_t dive_id;
 	uint32_t timestamp;
 	int32_t temperature;
 	int32_t pressure;

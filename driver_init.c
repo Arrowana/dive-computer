@@ -15,11 +15,23 @@
 struct timer_descriptor TIMER_0;
 struct i2c_m_sync_desc I2C_0;
 struct spi_m_sync_descriptor SPI_0;
+struct wdt_descriptor WDT_0;
+
+void WDT_0_CLOCK_init(void)
+{
+}
+
+void WDT_0_init(void)
+{
+	WDT_0_CLOCK_init();
+	wdt_init(&WDT_0, WDT0);
+	wdt_disable(&WDT_0);
+}
 
 static void TIMER_0_init(void)
 {
+	//see AON_SLEEP_TIMER_TICK to tune the timer
 	timer_init(&TIMER_0, AON_SLEEP_TIMER0, _aon_get_timer());
-	timer_set_clock_cycles_per_tick(&TIMER_0, 52000);
 }
 
 void I2C_0_PORT_init(void)
@@ -83,6 +95,17 @@ void SPI_0_CLOCK_init(void)
 {
 }
 
+void SPI0_register_isr(void)
+{
+	uint32_t *temp;
+
+	temp  = (uint32_t *)((RAM_ISR_TABLE_SPIRX0 + (0 << 1)) * 4 + ISR_RAM_MAP_START_ADDRESS);
+	*temp = (uint32_t)SPI0_RX_Handler;
+
+	temp  = (uint32_t *)((RAM_ISR_TABLE_SPITX0 + (0 << 1)) * 4 + ISR_RAM_MAP_START_ADDRESS);
+	*temp = (uint32_t)SPI0_TX_Handler;
+}
+
 void SPI_0_init(void)
 {
 	SPI_0_CLOCK_init(); //useless?
@@ -105,7 +128,11 @@ void system_init(void)
 	AON_SLEEP_TIMER0_register_isr();
 	TIMER_0_init();
 	
+	//WDT_0_init(); //Seems to have drastic consequences on the operation of everything
+	
+	//SPI0_register_isr();
 	SPI_0_init();
+	
 	I2C0_register_isr();
 	I2C_0_init();
 }

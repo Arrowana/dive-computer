@@ -62,8 +62,8 @@
 #define LIR_INT1             0b00001000
 
 #define ACCELEROMETER_SENSITIVITY 1 //mg/LSB
-#define MAGNETIC_GAIN_XY     230 //LSB/Gauss
-#define MAGNETIC_GAIN_Z      205 //LSB/Gauss
+#define MAGNETIC_GAIN_XY     1//230 //LSB/Gauss
+#define MAGNETIC_GAIN_Z      1//205 //LSB/Gauss
 #define TEMPERATURE_SENSITIVITY 8 //LSB/deg
 
 #define ZYXDA 0b00001000
@@ -91,5 +91,6 @@ LSM303STATUS read_acc(uint8_t reg, uint8_t* buffer);
 LSM303STATUS read_mag(uint8_t reg, uint8_t* buffer);
 
 LSM303STATUS read_acc_two_bytes(uint8_t reg, uint8_t* buffer);
+LSM303STATUS read_mag_two_bytes(uint8_t reg, uint8_t* buffer);
 
 #endif //__LSM303_H

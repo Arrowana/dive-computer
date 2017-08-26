@@ -16,11 +16,14 @@ extern "C" {
 
 #include <hal_i2c_m_sync.h>
 #include <hal_spi_m_sync.h>
+#include <hal_spi_m_async.h>
+#include <hal_wdt.h>
 #include <hal_timer.h>
 
 extern struct i2c_m_sync_desc I2C_0;
 extern struct timer_descriptor TIMER_0;
 extern struct spi_m_sync_descriptor SPI_0;
+extern struct wdt_descriptor WDT_0;
 
 void I2C_0_CLOCK_init(void);
 void I2C_0_init(void);

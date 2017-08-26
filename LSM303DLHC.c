@@ -1,5 +1,8 @@
 #include "LSM303DLHC.h"
 
+#define SET_ACC_ADDRESS() I2C_0.slave_addr = SAD_LINEAR_ACCELERATION
+#define SET_MAG_ADDRESS() I2C_0.slave_addr = SAD_MAGNETIC_FIELD
+
 LSM303STATUS LSM303_init() {
 	write_acc(CTRL_REG1_A, 0b00100111);
 	uint8_t buffer = 0xff;
@@ -7,16 +10,19 @@ LSM303STATUS LSM303_init() {
 	write_acc(CTRL_REG3_A, LIR_INT1); //FIFO_EN We enable the FIFO and latch the interrupt
 	//read_acc(CTRL_REG3_A, &buffer);
 	//click_config();
-	//write_mag(CRA_REG_M, 0b10010000); //Temperature sensor enabled and ODR 15Hz
-	//write_mag(CRB_REG_M, 0b11100000); //Gain 230 LSB/Gauss on X,Y 205 LSB/Gauss on Z
+	write_mag(CRA_REG_M, 0b00001000); //Temperature sensor enabled and ODR 3Hz
+	buffer = 0xff;
+	read_mag(CRA_REG_M, &buffer);
+	write_mag(CRB_REG_M, 0b11100000); //Gain 230 LSB/Gauss on X,Y 205 LSB/Gauss on Z
+	write_mag(MR_REG_M, 0b00000000); //continuous conversion
 	return SUCCESS;
 }
 
 LSM303STATUS click_config() {
-	//write_acc(CLICK_CFG_A, 0x01); //single click interrupt on X-axis
-	//write_mag(CLICK_SRC_A, 0b0010100); //single click enable, sign positive
-	//write_mag(CLICK_THS_A, 0); //TODO: Set threshold
-	//write_mag(TIME_LIMIT_A, 5); //No more than 5 readings at 10Hz over threshold
+	write_acc(CLICK_CFG_A, 0x01); //single click interrupt on X-axis
+	write_mag(CLICK_SRC_A, 0b0010100); //single click enable, sign positive
+	write_mag(CLICK_THS_A, 0); //TODO: Set threshold
+	write_mag(TIME_LIMIT_A, 5); //No more than 5 readings at 10Hz over threshold
 	return SUCCESS;
 }
 
@@ -27,6 +33,7 @@ bool is_accelerometer_data_available() {
 }
 
 LSM303STATUS read_accelerometer(vector_type* acceleration_vector) {
+	SET_ACC_ADDRESS();
 	int16_t x_value = -1;
 	int16_t y_value = -1;
 	int16_t z_value = -1;
@@ -44,18 +51,23 @@ LSM303STATUS read_accelerometer(vector_type* acceleration_vector) {
 }
 
 LSM303STATUS read_magnetometer(vector_type* magnetic_vector) {
-	//read(SR_REG_M); //DRDY
-	uint16_t x_value;
-	uint16_t y_value;
-	uint16_t z_value;
+	SET_MAG_ADDRESS();
+	uint8_t buff = 0xff;
+	read_mag(SR_REG_M, &buff); //DRDY
+	int16_t x_value;
+	int16_t y_value;
+	int16_t z_value;
 	
-	read_acc_two_bytes(OUT_X_L_M, (uint8_t *) &x_value);
-	read_acc_two_bytes(OUT_Y_L_M, (uint8_t *) &y_value);
-	read_acc_two_bytes(OUT_Z_L_M, (uint8_t *) &z_value);
+	read_mag_two_bytes(OUT_X_L_M, (uint8_t *) &x_value);
+	read_mag_two_bytes(OUT_Y_L_M, (uint8_t *) &y_value);
+	read_mag_two_bytes(OUT_Z_L_M, (uint8_t *) &z_value);
 	
 	magnetic_vector->x = x_value / MAGNETIC_GAIN_XY;
 	magnetic_vector->y = y_value / MAGNETIC_GAIN_XY;
 	magnetic_vector->z = z_value / MAGNETIC_GAIN_Z;
+	
+	//clear data lock
+	write_mag(SR_REG_M, 0b00000000);
 
 	return SUCCESS;
 }
@@ -72,33 +84,33 @@ uint8_t read_interrupt1() {
 }
 
 LSM303STATUS write_acc(uint8_t reg, uint8_t value) {
-	i2c_m_sync_set_slaveaddr(&I2C_0, SAD_LINEAR_ACCELERATION, 1);
+	SET_ACC_ADDRESS();
 	return i2c_m_sync_cmd_write(&I2C_0, reg, value) == ERR_NONE ? SUCCESS : FAILURE;
 }
 
 LSM303STATUS write_mag(uint8_t reg, uint8_t value) {
-	I2C_0.slave_addr = SAD_MAGNETIC_FIELD;
+	SET_MAG_ADDRESS();
 	return i2c_m_sync_cmd_write(&I2C_0, reg, value) == ERR_NONE ? SUCCESS : FAILURE;
 }
 
 LSM303STATUS read_acc(uint8_t reg, uint8_t* buffer) {
-	I2C_0.slave_addr = SAD_LINEAR_ACCELERATION;
+	SET_ACC_ADDRESS();
 	return i2c_m_sync_cmd_read(&I2C_0, reg, buffer) == ERR_NONE ? SUCCESS : FAILURE;
 }
 
 LSM303STATUS read_acc_two_bytes(uint8_t reg, uint8_t* buffer) {
-	i2c_m_sync_set_slaveaddr(&I2C_0, SAD_LINEAR_ACCELERATION, 1);
+	SET_ACC_ADDRESS();
 	if(i2c_m_sync_cmd_read(&I2C_0, reg, buffer) != ERR_NONE) { return FAILURE;};
 	return i2c_m_sync_cmd_read(&I2C_0, reg + 1, buffer + 1) == ERR_NONE ? SUCCESS : FAILURE;
 }
 
 LSM303STATUS read_mag(uint8_t reg, uint8_t* buffer) {
-	I2C_0.slave_addr = SAD_MAGNETIC_FIELD;
+	SET_MAG_ADDRESS();
 	return i2c_m_sync_cmd_read(&I2C_0, reg, buffer) == ERR_NONE ? SUCCESS : FAILURE;
 }
 
 LSM303STATUS read_mag_two_bytes(uint8_t reg, uint8_t* buffer) {
-	I2C_0.slave_addr = SAD_MAGNETIC_FIELD;
+	SET_MAG_ADDRESS();
 	if(i2c_m_sync_cmd_read(&I2C_0, reg, buffer) != ERR_NONE) { return FAILURE;};
 	return i2c_m_sync_cmd_read(&I2C_0, reg, buffer + 1) == ERR_NONE ? SUCCESS : FAILURE;
 }

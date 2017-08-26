@@ -8,15 +8,15 @@
 #include "hpl_irq.h"
 #include "logging.h"
 #include "test_spi_flash.h"
+#include "math.h"
 
 //#define LSM303_ENABLE
-#define DIVE_START_DEPTH 0.5
-#define DIVE_END_DEPTH 0.2
+#define DIVE_START_DEPTH    (1.0)
+#define DIVE_END_DEPTH      (0.3)
 
 struct io_descriptor *io_i2c;
 struct timer_task TIMER_0_task;
-volatile uint32_t ticks = 0;
-
+volatile uint32_t ticks = 0; //Used for timing
 
 void i2c_init()
 {
@@ -49,6 +49,7 @@ void peripherals_init()
 {
 	i2c_init();
 	spi_init();
+	//WDT_dive_init();
 }
 
 void sensors_init()
@@ -84,10 +85,10 @@ void format_depth_string(float depth, unsigned char* depth_string)
 
 	int tmpInt1 = tmpVal;                  // Get the integer (678).
 	float tmpFrac = tmpVal - tmpInt1;      // Get fraction (0.0123).
-	int tmpInt2 = tmpFrac * 100;  // Turn into integer (123).
+	int tmpInt2 = tmpFrac * 10;  // Turn into integer (123).
 
 	// Print as parts, note that you need 0-padding for fractional bit.
-	sprintf(depth_string, "D: %s%d.%02dm \n", tmpSign, tmpInt1, tmpInt2);
+	sprintf(depth_string, "D %s%d.%01dm \n", tmpSign, tmpInt1, tmpInt2);
 } 
 
 unsigned char* buffer[40] = {};
@@ -95,6 +96,7 @@ unsigned char* acceleration_string[100] = {};
 unsigned char* MS5837_output_string[100] = {};
 unsigned char* depth_string[20] = {};
 unsigned char* dive_id_string[20] = {};
+unsigned char* ticks_string[20] = {};
 	
 struct time
 {
@@ -104,52 +106,68 @@ struct time
 
 void update_display(struct time* dive_time, vector_type* acceleration_vector, MS5837_measurements* temp_pressure, float_t depth, uint8_t dive_id)
 {
+	//Format
+	sprintf(buffer, "%02d:%02d\n", dive_time->minute, dive_time->second);
+	format_depth_string(depth, depth_string);
+	sprintf(MS5837_output_string, "MS5837 \nT:%d degC\nP:%d .1mbar\n", temp_pressure->temperature, temp_pressure->pressure);
+	//sprintf(acceleration_string, "ACC \nx:%d \ny:%d \nz:%d\n", acceleration_vector->x, acceleration_vector->y, acceleration_vector->z);
+	sprintf(dive_id_string, "dive: %d\n", dive_id);
+	sprintf(ticks_string, "ticks: %d\n", ticks);
+	
+	//Display
 	ST7732_set_cursor(0, 0);
 	ST7735_set_text_size(4);
-
-	sprintf(buffer, "%02d:%02d\n", dive_time->minute, dive_time->second);
 	ST7735_print(buffer);
-	sprintf(acceleration_string, "ACC \nx:%d \ny:%d \nz:%d\n", acceleration_vector->x, acceleration_vector->y, acceleration_vector->z);
-	sprintf(MS5837_output_string, "MS5837 \nT:%d degC\nP:%d .1mbar\n", temp_pressure->temperature, temp_pressure->pressure);
-	format_depth_string(depth, depth_string);
-	sprintf(dive_id_string, "dive: %d", dive_id);
-	
-	ST7735_set_text_size(1);
-	ST7735_print(acceleration_string);
-	ST7735_print("\n");
-	ST7735_print(MS5837_output_string);
-	ST7735_set_text_size(2);
+	ST7735_set_text_size(3);
 	ST7735_print(depth_string);
 	ST7735_set_text_size(1);
+	//ST7735_print(acceleration_string);
+	ST7735_print(MS5837_output_string);
+	ST7735_print(ticks_string);
 	ST7735_print(dive_id_string);
 }
 
-//Dive computer program entry
-void run_dive_computer()
+void dive_computer_init()
 {
 	peripherals_init();
 	sensors_init();
 	screen_init();
 	init_logger();
+	//log_erase();
+	//init_logger();
+	TIMER_0_example(); //TODO: Rename
+}
 
-	TIMER_0_example();
+uint32_t get_time()
+{
+	return ticks; //Ticks is the time in seconds
+}
 
+//Dive computer program entry
+void run_dive_computer()
+{
+	dive_computer_init();
+	//wdt_feed(&WDT_0);
 	uint32_t cycles = 0;
 	timer_get_clock_cycles_in_tick(&TIMER_0, &cycles);
 	
+	LSM303STATUS status = FAILURE;
 	vector_type acceleration_vector = {0, 0, 0};
+	vector_type	magnetometer_vector = {0, 0, 0};
+	double heading = 0;
+
 	MS5837_measurements temp_pressure = {0, 0};
 	float_t depth = 0;
 	bool dive_in_progress = false;
-	LSM303STATUS status = FAILURE;
 
 	struct time dive_time = {0, 0};
 	uint8_t dive_id = 0;
+	uint32_t start_dive_timestamp = 0;
 
 	ST7735_drawBitmap(0, 0, splashscreen, 128, 128, ST7735_WHITE);
-	delay(5000);
-	fillScreen(ST7735_BLACK);
-    struct dive_record current_dive_record = {0, 0, 0};
+	delay(1000);
+	fastFillRect(0, 0, 128, 128, ST7735_BLACK);
+    struct dive_record current_dive_record = {0, 0, 0, 0};
 	uint8_t log_status = 0;
 
 	while(1)
@@ -157,16 +175,13 @@ void run_dive_computer()
 		MS5857_get_measurements(ADC_4096, &temp_pressure);
 		depth = pressure_to_depth(temp_pressure.pressure * 10);
 		
-		current_dive_record.temperature = temp_pressure.temperature;
-		current_dive_record.pressure = temp_pressure.pressure;
-		log_status = log_dive_record(&current_dive_record);
-		
 		if(depth > DIVE_START_DEPTH)
 		{
 			if(!dive_in_progress)
 			{
-				dive_time.second = 0; //Reset stopwatch
+				//New dive
 				dive_id++;
+				start_dive_timestamp = ticks;
 			}
 			dive_in_progress = true;
 		}
@@ -177,19 +192,21 @@ void run_dive_computer()
 		
 		if(dive_in_progress)
 		{
-			//fake time
-			if(dive_time.second == 59)
-			{
-				dive_time.second = 0;
-			}
-			else
-			{
-				dive_time.second++;
-			}
+			uint32_t current_dive_timestamp = ticks - start_dive_timestamp;
+			dive_time.minute = current_dive_timestamp / 60;
+			dive_time.second = current_dive_timestamp % 60;
+			
+			current_dive_record.dive_id = dive_id;
+			current_dive_record.timestamp = current_dive_timestamp;
+			current_dive_record.temperature = temp_pressure.temperature;
+			current_dive_record.pressure = temp_pressure.pressure;
+			log_status = log_dive_record(&current_dive_record);
 		}
 
 	#ifdef LSM303_ENABLE
 		status = read_accelerometer(&acceleration_vector);
+		read_magnetometer(&magnetometer_vector);
+		heading = atan2(magnetometer_vector.y, magnetometer_vector.x) * 180 / M_PI;
 	#endif
 
 		update_display(&dive_time, &acceleration_vector, &temp_pressure, depth, dive_id);
@@ -207,21 +224,6 @@ void delay_test()
 		while(i++ != 2500); // ~ 1 ms
 		i = 0;
 		gpio_set_pin_level(GPIO_PIN_RST, 1);
-	}
-}
-
-void SysTick_Handler(void)
-{
-	ticks++;
-}
-
-void test_systick()
-{
-	SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk; //Disable systick
-	uint32_t state = SysTick_Config(26000000/100);
-	for(;;)
-	{
-		uint32_t tick = SysTick->VAL;
 	}
 }
 

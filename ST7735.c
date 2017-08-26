@@ -6,6 +6,8 @@
 #define LCD_C LOW
 #define LCD_D HIGH
 
+struct io_descriptor *io_lcd_spi;
+
 // "Attributes"
 uint8_t _height;
 uint8_t _width;
@@ -203,10 +205,6 @@ void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
 	uint8_t color_buff[2];
 	color_buff[0] = color >> 8;
 	color_buff[1] = color & 0xff;
-	//Optimization
-	//for(x=w;x>0;x--) {
-	//	*(line_buffer + x) = color_buff;
-	//}
 
 	DC_HIGH();
 	CS_LOW();
@@ -214,25 +212,24 @@ void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
 		for(x=w; x>0; x--) {
 			io_write(io_lcd_spi, color_buff, 2);
 		}
-		//io_write(io_lcd_spi, line_buffer, w * 2);
 	}
 	CS_HIGH();
 }
 
 void drawPixel(int16_t x, int16_t y, uint16_t color) {
 
-  if((x < 0) ||(x >= _width) || (y < 0) || (y >= _height)) return;
+	if((x < 0) ||(x >= _width) || (y < 0) || (y >= _height)) return;
 
-  setAddrWindow(x,y,x+1,y+1);
+	setAddrWindow(x,y,x+1,y+1);
 
-uint8_t color_buff[2];
-color_buff[0] = color >> 8;
-color_buff[1] = color & 0xff;
+	uint8_t color_buff[2];
+	color_buff[0] = color >> 8;
+	color_buff[1] = color & 0xff;
 
-  DC_HIGH();
-  CS_LOW();
-  io_write(io_lcd_spi, color_buff, 2);
-  CS_HIGH();
+	DC_HIGH();
+	CS_LOW();
+	io_write(io_lcd_spi, color_buff, 2);
+	CS_HIGH();
 }
 
 #define MADCTL_MY  0x80
@@ -388,7 +385,6 @@ void drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg
            ((x + 6 * size - 1) < 0) || // Clip left
            ((y + 8 * size - 1) < 0))   // Clip top
             return;
-        //if(!_cp437 && (c >= 176)) c++; // Handle 'classic' charset behavior
 
         for(int8_t i=0; i<5; i++ ) { // Char bitmap = 5 columns
             uint8_t line = font[c * 5 + i];
@@ -406,11 +402,59 @@ void drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg
                 }
             }
         }
-        //if(bg != color) { // If opaque, draw vertical line for last column
-       //     if(size == 1) writeFastVLine(x+5, y, 8, bg);
-        //    else          writeFillRect(x+5*size, y, size, 8*size, bg);
-        //}
 	}
+}
+
+void fastDrawChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg, uint8_t size)
+{
+	//Buffer whole character before sending to save function reduce function calls
+    if((x >= _width)            || // Clip right
+        (y >= _height)           || // Clip bottom
+        ((x + 6 * size - 1) < 0) || // Clip left
+        ((y + 8 * size - 1) < 0))   // Clip top
+        return;
+
+	uint8_t color_buff[2];
+	color_buff[0] = color >> 8;
+	color_buff[1] = color & 0xff;
+	
+	uint8_t* char_buffer = (uint8_t*) malloc(5 * 8 * size * 2);
+
+    for(int8_t i=0; i<5; i++ ) { // Char bitmap = 5 columns
+        uint8_t line = font[c * 5 + i];
+		
+        for(int8_t j=0; j<8; j++, line >>= 1) {
+            if(line & 1) {
+                if(size == 1) {
+					//drawPixel(x+i, y+j, color);
+					char_buffer[(x + i + 5 * (y + j)) * 2] = color_buff[0];
+					char_buffer[(x + i + 5 * (y + j)) * 2 + 1] = color_buff[1];
+				} else {
+					//fillRect(x+i*size, y+j*size, size, size, color);
+					for(uint8_t v=0;v<size;v++) {
+						for(uint8_t u=0;u<size;u++) {
+							char_buffer[(x + i + u + 5 * (y + j + v)) * 2] = color_buff[0];
+							char_buffer[(x + i + u + 5 * (y + j + v)) * 2 + 1] = color_buff[1];
+						}
+					}
+				}
+            } else if(bg != color) {
+                if(size == 1) {
+					//drawPixel(x+i, y+j, bg);
+				} else {
+					//fillRect(x+i*size, y+j*size, size, size, bg);
+				}
+            }
+        }
+    }
+	setAddrWindow(x, y, x + 5 * size - 1, y + 8 * size - 1);
+	
+	DC_HIGH();
+	CS_LOW();
+	io_write(io_lcd_spi, char_buffer, 5 * 8 * size * 2);
+	CS_HIGH();
+
+	free(char_buffer);
 }
 
 uint8_t cursor_x = 0;
@@ -450,6 +494,36 @@ void ST7735_drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, 
             if(byte & 0x80) drawPixel(x+i, y, color);
         }
     }
+}
+
+void fastFillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color)
+{
+	// rudimentary clipping (drawChar w/big text requires this)
+	if((x >= _width) || (y >= _height)) return;
+	if((x + w - 1) >= _width)  w = _width  - x;
+	if((y + h - 1) >= _height) h = _height - y;
+
+	setAddrWindow(x, y, x+w-1, y+h-1);
+	uint8_t hi = color >> 8, lo = color;
+	
+	//Byte swap for MSB first
+	uint8_t color_buff[2];
+	color_buff[0] = color >> 8;
+	color_buff[1] = color & 0xff;
+	
+	uint8_t* buffer = (uint8_t*) malloc(2*h*w);
+	
+	for(uint16_t i = 0;i<2*h*w;i+=2) {
+		buffer[i] = hi;
+		buffer[i+1] = lo;
+	}
+	
+	DC_HIGH();
+	CS_LOW();
+	io_write(io_lcd_spi, buffer, 2 * h * w);
+	CS_HIGH();
+
+	free(buffer);
 }
 
 void write(uint8_t c)
