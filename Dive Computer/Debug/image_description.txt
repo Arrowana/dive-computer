@@ -1,0 +1,14 @@
+image
+	version = 0x000001
+	number of sections = 5
+	section 0 at 0x10040018 size 4 bytes
+	section 1 at 0x10040030 size 4 bytes
+	section 2 at 0x10040028 size 4 bytes
+	section 3 at 0x1004002c size 4 bytes
+	section 4 at 0x1004001c size 4 bytes
+
+image
+	version = 0x000001
+	number of sections = 1
+	section 0 at 0x10008000 size 71656 bytes
+

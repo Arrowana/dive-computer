@@ -1,0 +1,637 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="14.0">
+  <PropertyGroup>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>7.0</ProjectVersion>
+    <ToolchainName>com.Atmel.ARMGCC.C</ToolchainName>
+    <ProjectGuid>{dce6c7e3-ee26-4d79-826b-08594b9ad897}</ProjectGuid>
+    <avrdevice>ATSAMB11G18A</avrdevice>
+    <avrdeviceseries>none</avrdeviceseries>
+    <OutputType>Executable</OutputType>
+    <Language>C</Language>
+    <OutputFileName>$(MSBuildProjectName)</OutputFileName>
+    <OutputFileExtension>.elf</OutputFileExtension>
+    <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
+    <AssemblyName>Dive Computer</AssemblyName>
+    <Name>Dive Computer</Name>
+    <RootNamespace>Dive Computer</RootNamespace>
+    <ToolchainFlavour>Native</ToolchainFlavour>
+    <ExternalProgrammingToolCommand>"$(PROJECT_BLEAPP_ROOT)\tools\SambFlashTool.exe" write -i "$(OutputDirectory)\$(OutputFileName).img" -n $(avrtoolserialnumber) -c $(avrtoolinterfaceclock) -p $(avrdeviceexpectedsignature)</ExternalProgrammingToolCommand>
+    <KeepTimersRunning>true</KeepTimersRunning>
+    <OverrideVtor>false</OverrideVtor>
+    <CacheFlash>true</CacheFlash>
+    <ProgFlashFromRam>true</ProgFlashFromRam>
+    <RamSnippetAddress>0x20000000</RamSnippetAddress>
+    <UncachedRange />
+    <preserveEEPROM>true</preserveEEPROM>
+    <OverrideVtorValue>exception_table</OverrideVtorValue>
+    <BootSegment>2</BootSegment>
+    <eraseonlaunchrule>6</eraseonlaunchrule>
+    <AsfFrameworkConfig>
+      <framework-data xmlns="">
+        <options />
+        <configurations />
+        <files />
+        <documentation help="" />
+        <offline-documentation help="" />
+        <dependencies>
+          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.34.1" />
+        </dependencies>
+      </framework-data>
+    </AsfFrameworkConfig>
+    <GpdscFilePath>.atmelstart\AtmelStart.gpdsc</GpdscFilePath>
+    <atStartFilePath>.atmelstart\atmel_start_config.atstart</atStartFilePath>
+    <AtzipPath>.atmel-start-backup\Atmel_Start_1.atzip</AtzipPath>
+    <avrtool>custom</avrtool>
+    <avrtoolserialnumber>
+    </avrtoolserialnumber>
+    <avrdeviceexpectedsignature>0x2000B0</avrdeviceexpectedsignature>
+    <avrtoolinterface>SWD</avrtoolinterface>
+    <com_atmel_avrdbg_tool_samice>
+      <ToolOptions>
+        <InterfaceProperties>
+          <SwdClock>0</SwdClock>
+        </InterfaceProperties>
+        <InterfaceName>SWD</InterfaceName>
+        <JlinkConfigFile>C:\Users\Arowana\Documents\Atmel Studio\7.0\Dive Computer\Dive Computer\jlink.config</JlinkConfigFile>
+      </ToolOptions>
+      <ToolType>com.atmel.avrdbg.tool.samice</ToolType>
+      <ToolNumber>269307921</ToolNumber>
+      <ToolName>J-Link</ToolName>
+    </com_atmel_avrdbg_tool_samice>
+    <avrtoolinterfaceclock>0</avrtoolinterfaceclock>
+    <custom>
+      <ToolOptions xmlns="">
+        <InterfaceProperties>
+        </InterfaceProperties>
+        <InterfaceName>SWD</InterfaceName>
+      </ToolOptions>
+      <ToolType xmlns="">custom</ToolType>
+      <ToolNumber xmlns="">
+      </ToolNumber>
+      <ToolName xmlns="">Custom Programming Tool</ToolName>
+    </custom>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <ToolchainSettings>
+      <ArmGcc>
+  <armgcc.common.outputfiles.hex>True</armgcc.common.outputfiles.hex>
+  <armgcc.common.outputfiles.lss>True</armgcc.common.outputfiles.lss>
+  <armgcc.common.outputfiles.eep>True</armgcc.common.outputfiles.eep>
+  <armgcc.common.outputfiles.bin>True</armgcc.common.outputfiles.bin>
+  <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
+  <armgcc.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>NDEBUG</Value>
+    </ListValues>
+  </armgcc.compiler.symbols.DefSymbols>
+  <armgcc.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>%24(PackRepoDir)\atmel\SAMB11_DFP\2.2.181\include</Value>
+      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
+      <Value>../Config</Value>
+      <Value>../</Value>
+      <Value>../examples</Value>
+      <Value>../hal/include</Value>
+      <Value>../hal/utils/include</Value>
+      <Value>../hpl/core</Value>
+      <Value>../hpl/gpio</Value>
+      <Value>../hpl/i2c</Value>
+      <Value>../hpl/lpmcu_misc_regs</Value>
+      <Value>../hri</Value>
+    </ListValues>
+  </armgcc.compiler.directories.IncludePaths>
+  <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
+  <armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
+  <armgcc.compiler.warnings.AllWarnings>True</armgcc.compiler.warnings.AllWarnings>
+  <armgcc.linker.general.UseNewlibNano>True</armgcc.linker.general.UseNewlibNano>
+  <armgcc.linker.libraries.Libraries>
+    <ListValues>
+      <Value>libm</Value>
+    </ListValues>
+  </armgcc.linker.libraries.Libraries>
+  <armgcc.linker.libraries.LibrarySearchPaths>
+    <ListValues>
+      <Value>%24(ProjectDir)\Device_Startup</Value>
+    </ListValues>
+  </armgcc.linker.libraries.LibrarySearchPaths>
+  <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
+  <armgcc.linker.miscellaneous.LinkerFlags>-Tsamb11_sram.ld</armgcc.linker.miscellaneous.LinkerFlags>
+  <armgcc.assembler.general.IncludePaths>
+    <ListValues>
+      <Value>%24(PackRepoDir)\atmel\SAMB11_DFP\2.2.181\include</Value>
+      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
+      <Value>../Config</Value>
+      <Value>../</Value>
+      <Value>../examples</Value>
+      <Value>../hal/include</Value>
+      <Value>../hal/utils/include</Value>
+      <Value>../hpl/core</Value>
+      <Value>../hpl/gpio</Value>
+      <Value>../hpl/i2c</Value>
+      <Value>../hpl/lpmcu_misc_regs</Value>
+      <Value>../hri</Value>
+    </ListValues>
+  </armgcc.assembler.general.IncludePaths>
+  <armgcc.preprocessingassembler.general.IncludePaths>
+    <ListValues>
+      <Value>%24(PackRepoDir)\atmel\SAMB11_DFP\2.2.181\include</Value>
+      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
+      <Value>../Config</Value>
+      <Value>../</Value>
+      <Value>../examples</Value>
+      <Value>../hal/include</Value>
+      <Value>../hal/utils/include</Value>
+      <Value>../hpl/core</Value>
+      <Value>../hpl/gpio</Value>
+      <Value>../hpl/i2c</Value>
+      <Value>../hpl/lpmcu_misc_regs</Value>
+      <Value>../hri</Value>
+    </ListValues>
+  </armgcc.preprocessingassembler.general.IncludePaths>
+</ArmGcc>
+    </ToolchainSettings>
+    <PostBuildEvent>"$(PROJECT_BLEAPP_ROOT)\tools\samb_makeimage.bat" "$(PROJECT_BLEAPP_ROOT)\patches\patch.img" "$(OutputDirectory)\$(OutputFileName).bin"  app_entry _sstack _estack _sfixed</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <ToolchainSettings>
+      <ArmGcc>
+  <armgcc.common.outputfiles.hex>True</armgcc.common.outputfiles.hex>
+  <armgcc.common.outputfiles.lss>True</armgcc.common.outputfiles.lss>
+  <armgcc.common.outputfiles.eep>True</armgcc.common.outputfiles.eep>
+  <armgcc.common.outputfiles.bin>True</armgcc.common.outputfiles.bin>
+  <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
+  <armgcc.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>DEBUG</Value>
+    </ListValues>
+  </armgcc.compiler.symbols.DefSymbols>
+  <armgcc.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>%24(PackRepoDir)\atmel\SAMB11_DFP\2.2.181\include</Value>
+      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
+      <Value>../Config</Value>
+      <Value>../</Value>
+      <Value>../examples</Value>
+      <Value>../hal/include</Value>
+      <Value>../hal/utils/include</Value>
+      <Value>../hpl/core</Value>
+      <Value>../hpl/gpio</Value>
+      <Value>../hpl/i2c</Value>
+      <Value>../hpl/lpmcu_misc_regs</Value>
+      <Value>../hri</Value>
+      <Value>../hpl/aon_sleep_timer</Value>
+    </ListValues>
+  </armgcc.compiler.directories.IncludePaths>
+  <armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
+  <armgcc.compiler.optimization.DebugLevel>Maximum (-g3)</armgcc.compiler.optimization.DebugLevel>
+  <armgcc.compiler.warnings.AllWarnings>True</armgcc.compiler.warnings.AllWarnings>
+  <armgcc.linker.general.UseNewlibNano>True</armgcc.linker.general.UseNewlibNano>
+  <armgcc.linker.libraries.Libraries>
+    <ListValues>
+      <Value>libm</Value>
+    </ListValues>
+  </armgcc.linker.libraries.Libraries>
+  <armgcc.linker.libraries.LibrarySearchPaths>
+    <ListValues>
+      <Value>%24(ProjectDir)\Device_Startup</Value>
+    </ListValues>
+  </armgcc.linker.libraries.LibrarySearchPaths>
+  <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
+  <armgcc.linker.memorysettings.ExternalRAM />
+  <armgcc.linker.miscellaneous.LinkerFlags>-Tsamb11_sram.ld</armgcc.linker.miscellaneous.LinkerFlags>
+  <armgcc.assembler.general.IncludePaths>
+    <ListValues>
+      <Value>%24(PackRepoDir)\atmel\SAMB11_DFP\2.2.181\include</Value>
+      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
+      <Value>../Config</Value>
+      <Value>../</Value>
+      <Value>../examples</Value>
+      <Value>../hal/include</Value>
+      <Value>../hal/utils/include</Value>
+      <Value>../hpl/core</Value>
+      <Value>../hpl/gpio</Value>
+      <Value>../hpl/i2c</Value>
+      <Value>../hpl/lpmcu_misc_regs</Value>
+      <Value>../hri</Value>
+      <Value>../logging</Value>
+      <Value>../sensors</Value>
+      <Value>../display</Value>
+    </ListValues>
+  </armgcc.assembler.general.IncludePaths>
+  <armgcc.assembler.debugging.DebugLevel>Default (-g)</armgcc.assembler.debugging.DebugLevel>
+  <armgcc.preprocessingassembler.general.IncludePaths>
+    <ListValues>
+      <Value>%24(PackRepoDir)\atmel\SAMB11_DFP\2.2.181\include</Value>
+      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
+      <Value>../Config</Value>
+      <Value>../sensors</Value>
+      <Value>../</Value>
+      <Value>../examples</Value>
+      <Value>../hal/include</Value>
+      <Value>../hal/utils/include</Value>
+      <Value>../hpl/core</Value>
+      <Value>../hpl/gpio</Value>
+      <Value>../hpl/i2c</Value>
+      <Value>../hpl/lpmcu_misc_regs</Value>
+      <Value>../hri</Value>
+    </ListValues>
+  </armgcc.preprocessingassembler.general.IncludePaths>
+  <armgcc.preprocessingassembler.debugging.DebugLevel>Default (-Wa,-g)</armgcc.preprocessingassembler.debugging.DebugLevel>
+</ArmGcc>
+    </ToolchainSettings>
+    <PostBuildEvent>"$(PROJECT_BLEAPP_ROOT)\tools\samb_makeimage.bat" "$(PROJECT_BLEAPP_ROOT)\patches\patch.img" "$(OutputDirectory)\$(OutputFileName).bin"  app_entry _sstack _estack _sfixed</PostBuildEvent>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="atmel_start.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="atmel_start.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="atmel_start_pins.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Config\hpl_aon_sleep_timer_config.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Config\hpl_i2c_config.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Config\hpl_lpmcu_misc_regs_config.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Config\hpl_spi_config.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Config\hpl_wdt_config.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Config\peripheral_clk_config.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Config\RTE_Components.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Device_Startup\startup_samb11.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Device_Startup\system_samb11.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="display\bitmaps.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="display\display.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="display\display.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="display\gfxfont.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="display\glcdfont.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="display\ST7735.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="display\ST7735.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="driver_init.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="driver_init.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="examples\driver_examples.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="examples\driver_examples.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hal_atomic.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hal_gpio.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hal_i2c_m_sync.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hal_init.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hal_io.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hal_spi_m_async.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hal_spi_m_sync.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hal_timer.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hal_wdt.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_core.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_ext_irq.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_gpio.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_i2c_m_async.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_i2c_m_sync.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_i2c_s_async.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_i2c_s_sync.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_init.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_irq.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_missing_features.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_spi.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_spi_async.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_spi_dma.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_spi_m_async.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_spi_m_dma.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_spi_m_sync.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_spi_sync.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_spi_s_async.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_spi_s_sync.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_timer.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\include\hpl_wdt.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\src\hal_atomic.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\src\hal_gpio.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\src\hal_i2c_m_sync.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\src\hal_init.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\src\hal_io.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\src\hal_spi_m_async.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\src\hal_spi_m_sync.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\src\hal_timer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\src\hal_wdt.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\utils\include\compiler.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\utils\include\err_codes.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\utils\include\parts.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\utils\include\utils.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\utils\include\utils_assert.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\utils\include\utils_increment_macro.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\utils\include\utils_list.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\utils\include\utils_repeat_macro.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\utils\src\utils_assert.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\utils\src\utils_list.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hal\utils\src\utils_syscalls.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hpl\aon_sleep_timer\hpl_aon_sleep_timer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hpl\aon_sleep_timer\hpl_aon_sleep_timer.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hpl\core\hpl_core_m0_base.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hpl\core\hpl_core_port.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hpl\core\hpl_init.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hpl\gpio\hpl_gpio_base.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hpl\i2c\hpl_i2c.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hpl\lpmcu_misc_regs\hpl_lpmcu_misc_regs.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hpl\spi\hpl_spi.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hpl\wdt\hpl_wdt.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_aon_gp_regs_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_aon_pwr_seq_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_aon_sleep_timer_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_arm_bpu_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_arm_dwt_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_arm_rom_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_arm_sysctrl_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_dualtimer_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_efuse_misc_regs_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_gpio_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_i2c_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_lpmcu_misc_regs_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_lp_clk_cal_regs_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_prov_dma_ctrl_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_spi_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_spi_flash_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_timer_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_uart_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hri\hri_wdt_b11.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="logging\logging.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="logging\logging.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="logging\spi_flash.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="logging\spi_flash.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="logging\system_sam_b.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="logging\system_sam_b.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="logging\test_spi_flash.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="logging\test_spi_flash.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="main.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="sensors\LSM303DLHC.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="sensors\LSM303DLHC.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="sensors\MS5837.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="sensors\MS5837.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="types.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="utilities.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="utilities.h">
+      <SubType>compile</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Config\" />
+    <Folder Include="Device_Startup\" />
+    <Folder Include="examples\" />
+    <Folder Include="hal\" />
+    <Folder Include="hal\include\" />
+    <Folder Include="hal\src\" />
+    <Folder Include="hal\utils\" />
+    <Folder Include="hal\utils\include\" />
+    <Folder Include="hal\utils\src\" />
+    <Folder Include="hpl\" />
+    <Folder Include="hpl\core\" />
+    <Folder Include="hpl\gpio\" />
+    <Folder Include="hpl\i2c\" />
+    <Folder Include="hpl\lpmcu_misc_regs\" />
+    <Folder Include="hpl\aon_sleep_timer" />
+    <Folder Include="hpl\NewFolder2\" />
+    <Folder Include="hpl\wdt" />
+    <Folder Include="hpl\spi" />
+    <Folder Include="hri\" />
+    <Folder Include="display" />
+    <Folder Include="logging" />
+    <Folder Include="sensors" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="debughooks.py">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="Device_Startup\samb11_sram.ld">
+      <SubType>compile</SubType>
+    </None>
+  </ItemGroup>
+  <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
+</Project>

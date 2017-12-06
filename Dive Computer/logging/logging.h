@@ -21,6 +21,7 @@ struct logger
 
 void init_logger();
 uint8_t log_dive_record(struct dive_record* record);
+uint32_t get_last_dive_id();
 void log_erase();
 
 #endif

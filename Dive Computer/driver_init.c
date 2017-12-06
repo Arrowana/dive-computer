@@ -87,7 +87,9 @@ void SPI_0_PORT_init(void)
 	
 	//LED_EN
 	gpio_set_pin_direction(LP_GPIO_3, GPIO_DIRECTION_OUT);
-	gpio_set_pin_pull_mode(LP_GPIO_3, GPIO_PULL_OFF);
+	gpio_set_pin_level(LP_GPIO_3, true);
+	//gpio_set_pin_pull_mode(LP_GPIO_3, GPIO_PULL_OFF);
+	
 	gpio_set_pin_function(LP_GPIO_8, GPIO_PIN_FUNCTION_OFF);
 }
 

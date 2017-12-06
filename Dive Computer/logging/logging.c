@@ -20,6 +20,11 @@ void init_logger() {
 	}
 }
 
+uint32_t get_last_dive_id() {
+	//Return 0 if no record
+	return active_logger.current_record == 0 ? 0 : active_logger.dive_records[active_logger.current_record - 1].dive_id;
+}
+
 uint8_t log_dive_record(struct dive_record* record)
 {
 	if(active_logger.current_record >= MAX_DIVE_RECORDS)

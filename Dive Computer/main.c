@@ -1,14 +1,13 @@
 #include <atmel_start.h>
-#include "LSM303DLHC.h"
-#include "MS5837.h"
-#include "ST7735.h"
+#include "sensors/LSM303DLHC.h"
+#include "sensors/MS5837.h"
+#include "display/ST7735.h"
+#include "display/bitmaps.h"
 #include "utilities.h"
-#include "bitmaps.h"
 #include "math.h"
 #include "hpl_irq.h"
-#include "logging.h"
-#include "test_spi_flash.h"
-#include "math.h"
+#include "logging/logging.h"
+#include "types.h"
 
 //#define LSM303_ENABLE
 #define DIVE_START_DEPTH    (1.0)
@@ -49,13 +48,11 @@ void peripherals_init()
 {
 	i2c_init();
 	spi_init();
-	//WDT_dive_init();
 }
 
 void sensors_init()
 {
 	MS5837_init();
-	
 #ifdef LSM303_ENABLE
 	LSM303_init();
 #endif
@@ -63,10 +60,8 @@ void sensors_init()
 
 void screen_init()
 {
-	ST7735_backLight(0);
 	initR(INITR_144GREENTAB);
 	fillScreen(ST7735_BLACK);
-	ST7735_backLight(1);
 }
 
 float_t pressure_to_depth(int32_t pressure_hpa)
@@ -75,56 +70,6 @@ float_t pressure_to_depth(int32_t pressure_hpa)
 	float_t depth = (pressure_hpa - 100000) / 1030 / 9.81;
 	
 	return depth;
-}
-
-void format_depth_string(float depth, unsigned char* depth_string)
-{
-	//sprintf float formattting, from stackoverflow https://stackoverflow.com/questions/905928/using-floats-with-sprintf-in-embedded-c
-	char *tmpSign = (depth < 0) ? "-" : "";
-	float tmpVal = (depth < 0) ? -depth : depth;
-
-	int tmpInt1 = tmpVal;                  // Get the integer (678).
-	float tmpFrac = tmpVal - tmpInt1;      // Get fraction (0.0123).
-	int tmpInt2 = tmpFrac * 10;  // Turn into integer (123).
-
-	// Print as parts, note that you need 0-padding for fractional bit.
-	sprintf(depth_string, "D %s%d.%01dm \n", tmpSign, tmpInt1, tmpInt2);
-} 
-
-unsigned char* buffer[40] = {};
-unsigned char* acceleration_string[100] = {};
-unsigned char* MS5837_output_string[100] = {};
-unsigned char* depth_string[20] = {};
-unsigned char* dive_id_string[20] = {};
-unsigned char* ticks_string[20] = {};
-	
-struct time
-{
-	uint8_t minute;
-	uint8_t second;
-};
-
-void update_display(struct time* dive_time, vector_type* acceleration_vector, MS5837_measurements* temp_pressure, float_t depth, uint8_t dive_id)
-{
-	//Format
-	sprintf(buffer, "%02d:%02d\n", dive_time->minute, dive_time->second);
-	format_depth_string(depth, depth_string);
-	sprintf(MS5837_output_string, "MS5837 \nT:%d degC\nP:%d .1mbar\n", temp_pressure->temperature, temp_pressure->pressure);
-	//sprintf(acceleration_string, "ACC \nx:%d \ny:%d \nz:%d\n", acceleration_vector->x, acceleration_vector->y, acceleration_vector->z);
-	sprintf(dive_id_string, "dive: %d\n", dive_id);
-	sprintf(ticks_string, "ticks: %d\n", ticks);
-	
-	//Display
-	ST7732_set_cursor(0, 0);
-	ST7735_set_text_size(4);
-	ST7735_print(buffer);
-	ST7735_set_text_size(3);
-	ST7735_print(depth_string);
-	ST7735_set_text_size(1);
-	//ST7735_print(acceleration_string);
-	ST7735_print(MS5837_output_string);
-	ST7735_print(ticks_string);
-	ST7735_print(dive_id_string);
 }
 
 void dive_computer_init()
@@ -147,7 +92,6 @@ uint32_t get_time()
 void run_dive_computer()
 {
 	dive_computer_init();
-	//wdt_feed(&WDT_0);
 	uint32_t cycles = 0;
 	timer_get_clock_cycles_in_tick(&TIMER_0, &cycles);
 	
@@ -161,7 +105,7 @@ void run_dive_computer()
 	bool dive_in_progress = false;
 
 	struct time dive_time = {0, 0};
-	uint8_t dive_id = 0;
+	uint8_t dive_id = get_last_dive_id();
 	uint32_t start_dive_timestamp = 0;
 
 	ST7735_drawBitmap(0, 0, splashscreen, 128, 128, ST7735_WHITE);
@@ -208,22 +152,13 @@ void run_dive_computer()
 		read_magnetometer(&magnetometer_vector);
 		heading = atan2(magnetometer_vector.y, magnetometer_vector.x) * 180 / M_PI;
 	#endif
-
-		update_display(&dive_time, &acceleration_vector, &temp_pressure, depth, dive_id);
-	}
-}
-
-//Used to define a sleep given the instruction time
-void delay_test()
-{
-	//Attempt to establish a delay
-	volatile uint32_t i = 0;
-	while(1)
-	{
-		gpio_set_pin_level(GPIO_PIN_RST, 0);
-		while(i++ != 2500); // ~ 1 ms
-		i = 0;
-		gpio_set_pin_level(GPIO_PIN_RST, 1);
+	
+		display_data_t display_data;
+		display_data.dive_time = &dive_time;
+		display_data.temp_pressure = &temp_pressure;
+		display_data.depth = depth;
+		display_data.dive_id = dive_id;
+		update_display(&display_data);
 	}
 }
 
