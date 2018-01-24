@@ -10,6 +10,7 @@
 #include "types.h"
 
 //#define LSM303_ENABLED 1
+#define I2C_ENABLED 1
 //#define SOUND_ENABLED 1
 #define SPI_DISPLAY_ENABLED 1
 #define DIVE_START_DEPTH    (1.0)
@@ -22,18 +23,19 @@ volatile uint32_t ticks = 0; //Used for timing
 // TODO: Ideally we will separate this logic in the another file.
 #ifdef SOUND_ENABLED
 uint32_t soundWaveTicks = 0;
-static const uint32_t soundToggleLimit = 599;
+static const uint32_t soundToggleLimit = 10;
 bool soundIsOn = true; // For debug only. This logic is controlled by alarm settings.
 
 void soundLogicRun() 
 {
-	if (soundIsOn) {
+	if (soundIsOn) 
+	{
 		soundWaveTicks += 1;
 		if (soundWaveTicks > soundToggleLimit) 
 		{
 			uint8_t soundPin = getSoundPin();
-			soundWaveTicks = 0;
-			gpio_toggle_pin_level(soundPin);		
+			gpio_toggle_pin_level(soundPin);
+			soundWaveTicks = 0;		
 		}
 	}
 }
@@ -75,7 +77,10 @@ void TIMER_0_Init(void)
 
 void peripherals_init()
 {
+#ifdef I2C_ENABLED
 	i2c_init();
+#endif
+
 #ifdef SPI_DISPLAY_ENABLED
 	spi_init();
 #endif
@@ -83,7 +88,11 @@ void peripherals_init()
 
 void sensors_init()
 {
+	// This code MS5837 sensor initiation freezes when the sensor is not connected.
+#ifdef I2C_ENABLED
 	MS5837_init();
+	//uint8_t addr = find_I2C_address(); // Find the address of the sensor.
+#endif
 #ifdef LSM303_ENABLED
 	LSM303_init();
 #endif
@@ -153,9 +162,12 @@ void run_dive_computer()
 
 	while(1)
 	{
+#ifdef I2C_ENABLED
 		MS5857_get_measurements(ADC_4096, &temp_pressure);
 		depth = pressure_to_depth(temp_pressure.pressure * 10);
-		
+#else
+		depth = 0;
+#endif
 		if(depth > DIVE_START_DEPTH)
 		{
 			if(!dive_in_progress)
@@ -206,15 +218,19 @@ void run_dive_computer()
 
 int main(void)
 {	
+	bool spiEnabled = false;
+	bool i2cEnabled = false;
+	bool soundEnabled = false;
+		
+#ifdef SPI_DISPLAY_ENABLED
 	//Hack to make SPI working
 	uint8_t* spi_module_enable = 0x40006018;
 	*spi_module_enable = 0x00;
-	bool spiEnabled = false;
-	bool i2cEnabled = true;
-	bool soundEnabled = false;
-	
-#ifdef SPI_DISPLAY_ENABLED
 	spiEnabled = true;
+#endif
+
+#ifdef I2C_ENABLED
+	i2cEnabled = true;
 #endif
 
 #ifdef SOUND_ENABLED

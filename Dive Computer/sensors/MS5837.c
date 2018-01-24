@@ -7,6 +7,7 @@ int32_t _temperature_actual;
 int32_t _pressure_actual;
 
 #define SET_SLAVE_ADDR() I2C_0.slave_addr = 0b1110110
+#define SET_SLAVE_ADDRESS( n ) I2C_0.slave_addr = n
 
 uint8_t MS5837_init()
 {
@@ -22,6 +23,19 @@ uint8_t MS5837_init()
 	}
 	
 	return 0;
+}
+
+uint8_t find_I2C_address() 
+{
+	uint8_t buffer[1] = {0};
+	for(uint8_t address = 1; address < 127; address++ ) 
+	{
+		SET_SLAVE_ADDRESS(address);
+		uint32_t ret =  i2c_m_sync_cmd_read_multi(&I2C_0,0x00, &buffer, 1);
+		if (ret == 1) {
+			return address;
+		}
+	}
 }
 
 int32_t MS5837_get_adc_measurement(enum measurement _measurement, enum precision _precision)
