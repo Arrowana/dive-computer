@@ -1,4 +1,4 @@
-#include <atmel_start.h>
+#include "driver_init.h"
 #include "sensors/LSM303DLHC.h"
 #include "sensors/MS5837.h"
 #include "display/ST7735.h"
@@ -9,13 +9,42 @@
 #include "logging/logging.h"
 #include "types.h"
 
-//#define LSM303_ENABLE
+//#define LSM303_ENABLED 1
+//#define SOUND_ENABLED 1
+#define SPI_DISPLAY_ENABLED 1
 #define DIVE_START_DEPTH    (1.0)
 #define DIVE_END_DEPTH      (0.3)
 
 struct io_descriptor *io_i2c;
 struct timer_task TIMER_0_task;
 volatile uint32_t ticks = 0; //Used for timing
+
+// TODO: Ideally we will separate this logic in the another file.
+#ifdef SOUND_ENABLED
+uint32_t soundWaveTicks = 0;
+static const uint32_t soundToggleLimit = 599;
+bool soundIsOn = true; // For debug only. This logic is controlled by alarm settings.
+
+void soundLogicRun() 
+{
+	if (soundIsOn) {
+		soundWaveTicks += 1;
+		if (soundWaveTicks > soundToggleLimit) 
+		{
+			uint8_t soundPin = getSoundPin();
+			soundWaveTicks = 0;
+			gpio_toggle_pin_level(soundPin);		
+		}
+	}
+}
+
+void sound_init() 
+{
+// This method does not do much for now. But in the future will use the timer initialisation.	
+}
+
+#endif
+
 
 void i2c_init()
 {
@@ -34,7 +63,7 @@ static void TIMER_0_wakeup_task_cb(const struct timer_task *const timer_task)
 	ticks++;
 }
 
-void TIMER_0_example(void)
+void TIMER_0_Init(void)
 {
 	TIMER_0_task.interval = 1;
 	TIMER_0_task.cb       = TIMER_0_wakeup_task_cb;
@@ -47,28 +76,33 @@ void TIMER_0_example(void)
 void peripherals_init()
 {
 	i2c_init();
+#ifdef SPI_DISPLAY_ENABLED
 	spi_init();
+#endif
 }
 
 void sensors_init()
 {
 	MS5837_init();
-#ifdef LSM303_ENABLE
+#ifdef LSM303_ENABLED
 	LSM303_init();
 #endif
 }
 
 void screen_init()
 {
+#ifdef SPI_DISPLAY_ENABLED
 	initR(INITR_144GREENTAB);
 	fillScreen(ST7735_BLACK);
+#endif
 }
 
 float_t pressure_to_depth(int32_t pressure_hpa)
 {
 	//Return depth in meters
-	float_t depth = (pressure_hpa - 100000) / 1030 / 9.81;
-	
+	// TODO: Here should be used initial atmospheric pressure instead of 101325, which is by definition the 1 atm in pascals.
+	// TODO: Default density of the oceanic water is 1025. For fresh (lakes) water 1000 should be used.
+	float_t depth = (pressure_hpa - 101325) / 1030 / 9.81;
 	return depth;
 }
 
@@ -78,9 +112,11 @@ void dive_computer_init()
 	sensors_init();
 	screen_init();
 	init_logger();
-	//log_erase();
-	//init_logger();
-	TIMER_0_example(); //TODO: Rename
+	//log_erase(); // To start logging all over
+	TIMER_0_Init();
+#ifdef SOUND_ENABLED	 
+	sound_init();
+#endif
 }
 
 uint32_t get_time()
@@ -94,12 +130,12 @@ void run_dive_computer()
 	dive_computer_init();
 	uint32_t cycles = 0;
 	timer_get_clock_cycles_in_tick(&TIMER_0, &cycles);
-	
+#ifdef LSM303_ENABLED
 	LSM303STATUS status = FAILURE;
 	vector_type acceleration_vector = {0, 0, 0};
 	vector_type	magnetometer_vector = {0, 0, 0};
 	double heading = 0;
-
+#endif
 	MS5837_measurements temp_pressure = {0, 0};
 	float_t depth = 0;
 	bool dive_in_progress = false;
@@ -107,10 +143,11 @@ void run_dive_computer()
 	struct time dive_time = {0, 0};
 	uint8_t dive_id = get_last_dive_id();
 	uint32_t start_dive_timestamp = 0;
-
+#ifdef SPI_DISPLAY_ENABLED
 	ST7735_drawBitmap(0, 0, splashscreen, 128, 128, ST7735_WHITE);
 	delay(1000);
 	fastFillRect(0, 0, 128, 128, ST7735_BLACK);
+#endif
     struct dive_record current_dive_record = {0, 0, 0, 0};
 	uint8_t log_status = 0;
 
@@ -146,30 +183,45 @@ void run_dive_computer()
 			current_dive_record.pressure = temp_pressure.pressure;
 			log_status = log_dive_record(&current_dive_record);
 		}
+#ifdef SOUND_ENABLED	
+		soundLogicRun();
+#endif
 
-	#ifdef LSM303_ENABLE
+#ifdef LSM303_ENABLED
 		status = read_accelerometer(&acceleration_vector);
 		read_magnetometer(&magnetometer_vector);
 		heading = atan2(magnetometer_vector.y, magnetometer_vector.x) * 180 / M_PI;
-	#endif
-	
+#endif
+
+#ifdef SPI_DISPLAY_ENABLED
 		display_data_t display_data;
 		display_data.dive_time = &dive_time;
 		display_data.temp_pressure = &temp_pressure;
 		display_data.depth = depth;
 		display_data.dive_id = dive_id;
 		update_display(&display_data);
+#endif
 	}
 }
 
 int main(void)
 {	
-	//Maximum hack to unfuck SPI
+	//Hack to make SPI working
 	uint8_t* spi_module_enable = 0x40006018;
 	*spi_module_enable = 0x00;
+	bool spiEnabled = false;
+	bool i2cEnabled = true;
+	bool soundEnabled = false;
 	
-	/* Initializes MCU, drivers and middleware */
-	atmel_start_init();
+#ifdef SPI_DISPLAY_ENABLED
+	spiEnabled = true;
+#endif
 
+#ifdef SOUND_ENABLED
+	soundEnabled = true;
+#endif
+
+	/* Initializes MCU, drivers and middleware */
+	system_init(spiEnabled, i2cEnabled, soundEnabled);
 	run_dive_computer();
 }

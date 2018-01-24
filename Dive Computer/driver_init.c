@@ -15,19 +15,20 @@
 struct timer_descriptor TIMER_0;
 struct i2c_m_sync_desc I2C_0;
 struct spi_m_sync_descriptor SPI_0;
-struct wdt_descriptor WDT_0;
 
+// Watch Dog timer temporarily off
+/*
+struct wdt_descriptor WDT_0;
 void WDT_0_CLOCK_init(void)
 {
 }
-
 void WDT_0_init(void)
 {
 	WDT_0_CLOCK_init();
 	wdt_init(&WDT_0, WDT0);
 	wdt_disable(&WDT_0);
 }
-
+*/
 static void TIMER_0_init(void)
 {
 	//see AON_SLEEP_TIMER_TICK to tune the timer
@@ -36,6 +37,7 @@ static void TIMER_0_init(void)
 
 void I2C_0_PORT_init(void)
 {
+	// So we are hard codding I2C pins as they are defined by the ATSAMB11 chip defaults.
 	gpio_set_pin_function(LP_GPIO_9, PINMUX_LP_GPIO_9_M_I2C0_SCL);
 	gpio_set_pin_function(LP_GPIO_8, PINMUX_LP_GPIO_8_M_I2C0_SDA);
 }
@@ -54,6 +56,17 @@ void I2C_0_init(void)
 void I2C0_register_isr(void)
 {
 	uint32_t *temp;
+}
+
+void SOUND_pins_init(uint8_t soundOnPin, uint8_t signalPin, uint8_t groundPin) {
+	gpio_set_pin_direction(soundOnPin, GPIO_DIRECTION_OUT);
+	gpio_set_pin_level(soundOnPin, true);
+	
+	gpio_set_pin_direction(signalPin, GPIO_DIRECTION_OUT);
+	gpio_set_pin_level(signalPin, true);
+	
+	gpio_set_pin_direction(groundPin, GPIO_DIRECTION_OUT);
+	gpio_set_pin_level(groundPin, false);
 }
 
 void SPI_0_PORT_init(void)
@@ -123,18 +136,32 @@ void AON_SLEEP_TIMER0_register_isr(void)
 	*temp = (uint32_t)AON_SLEEP_TIMER0_Handler;
 }
 
-void system_init(void)
+uint8_t getSoundPin() 
+{
+	return GPIO(GPIO_PORTA,7);
+}
+
+void system_init(bool spiEnabled, bool i2cEnabled, bool soundEnabled)
 {
 	init_mcu();
 	
 	AON_SLEEP_TIMER0_register_isr();
 	TIMER_0_init();
+	if (spiEnabled) {
+		//SPI0_register_isr();
+		SPI_0_init();
+	}
 	
-	//WDT_0_init(); //Seems to have drastic consequences on the operation of everything
+	if (i2cEnabled) {
+		I2C0_register_isr();
+		I2C_0_init();
+	}
 	
-	//SPI0_register_isr();
-	SPI_0_init();
-	
-	I2C0_register_isr();
-	I2C_0_init();
+	if (soundEnabled) {
+		//For now I will hard code pins for sound here. They should be injected outside later.
+		uint8_t chipEnabledPin = GPIO(GPIO_PORTA,4);
+		uint8_t soundSignalPin = getSoundPin();
+		uint8_t soundZeroPin = GPIO(GPIO_PORTA,6);
+		SOUND_pins_init(chipEnabledPin, soundSignalPin, soundZeroPin);
+	}
 }

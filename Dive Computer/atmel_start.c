@@ -5,5 +5,5 @@
 **/
 void atmel_start_init(void)
 {
-	system_init();
+	system_init(true, true, true);
 }
