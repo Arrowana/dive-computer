@@ -34,7 +34,9 @@ enum precision
 	ADC_8192 = 0x0A,
 };
 
-uint8_t MS5837_init();
+static uint8_t i2c_sensor_address;
+uint8_t MS5837_init(uint8_t sensorAddress);
+uint8_t find_I2C_address();
 int32_t MS5837_get_adc_measurement(enum measurement _measurement, enum precision _precision);
 void MS5857_get_measurements(enum precision _precision, MS5837_measurements* measurements);
  
