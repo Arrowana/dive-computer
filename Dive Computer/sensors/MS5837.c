@@ -6,12 +6,12 @@ uint16_t coefficient[7];
 int32_t _temperature_actual;
 int32_t _pressure_actual;
 
-#define SET_SLAVE_ADDR() I2C_0.slave_addr = 0b1110110
 #define SET_SLAVE_ADDRESS( n ) I2C_0.slave_addr = n
 
-uint8_t MS5837_init()
+uint8_t MS5837_init(uint8_t sensorAddress)
 {
-	SET_SLAVE_ADDR();
+	i2c_sensor_address = sensorAddress;
+	SET_SLAVE_ADDRESS(i2c_sensor_address);
 	uint32_t ret =  io_i2c->write(io_i2c, &reset_cmd, 1); //i2c_m_sync_write(&I2C_0, &reset_cmd, 1);
 	uint8_t buffer[2] = {0};
 	
@@ -40,7 +40,7 @@ uint8_t find_I2C_address()
 
 int32_t MS5837_get_adc_measurement(enum measurement _measurement, enum precision _precision)
 {
-	SET_SLAVE_ADDR();
+	SET_SLAVE_ADDRESS(i2c_sensor_address);
 	uint8_t reg = convert_cmd + _measurement + _precision;
 	uint32_t ret = io_i2c->write(io_i2c, &reg, 1);
 	delay(10); //Maximum delay
@@ -53,7 +53,7 @@ int32_t MS5837_get_adc_measurement(enum measurement _measurement, enum precision
 
 void MS5857_get_measurements(enum precision _precision, MS5837_measurements* measurements)
 {
-	SET_SLAVE_ADDR();
+	SET_SLAVE_ADDRESS(i2c_sensor_address);
 	//Retrieve ADC result
 	int32_t temperature_raw = MS5837_get_adc_measurement(TEMPERATURE, _precision);
 	int32_t pressure_raw = MS5837_get_adc_measurement(PRESSURE, _precision);
@@ -105,7 +105,6 @@ void MS5857_get_measurements(enum precision _precision, MS5837_measurements* mea
 
 	// Now lets calculate the pressure
 	pressure_calc = (((SENS * pressure_raw) / 2097152 ) - OFF) / 8192;
-	
 	measurements->temperature = temp_calc;
 	measurements->pressure = pressure_calc;
 }

@@ -9,21 +9,25 @@
 #include "logging/logging.h"
 #include "types.h"
 
+#define DEFAULT_PRESSURE_ACCURACY ADC_4096 
 //#define LSM303_ENABLED 1
 #define I2C_ENABLED 1
-//#define SOUND_ENABLED 1
-#define SPI_DISPLAY_ENABLED 1
+#define SOUND_ENABLED 1
+//#define SPI_DISPLAY_ENABLED 1
 #define DIVE_START_DEPTH    (1.0)
 #define DIVE_END_DEPTH      (0.3)
 
 struct io_descriptor *io_i2c;
 struct timer_task TIMER_0_task;
+
+
 volatile uint32_t ticks = 0; //Used for timing
 
 // TODO: Ideally we will separate this logic in the another file.
 #ifdef SOUND_ENABLED
+struct timer_task SOUND_task;
 uint32_t soundWaveTicks = 0;
-static const uint32_t soundToggleLimit = 10;
+static const uint32_t soundToggleLimit = 3;
 bool soundIsOn = true; // For debug only. This logic is controlled by alarm settings.
 
 void soundLogicRun() 
@@ -40,9 +44,17 @@ void soundLogicRun()
 	}
 }
 
+static void SOUND_generation_task(const struct timer_task *const timer_task)
+{
+	soundLogicRun();
+}
+
 void sound_init() 
 {
-// This method does not do much for now. But in the future will use the timer initialisation.	
+		SOUND_task.interval = 1;
+		SOUND_task.cb       = SOUND_generation_task;
+		SOUND_task.mode     = TIMER_TASK_REPEAT;
+		timer_add_task(&TIMER_0, &SOUND_task);
 }
 
 #endif
@@ -67,12 +79,10 @@ static void TIMER_0_wakeup_task_cb(const struct timer_task *const timer_task)
 
 void TIMER_0_Init(void)
 {
-	TIMER_0_task.interval = 1;
+	TIMER_0_task.interval = 10000;
 	TIMER_0_task.cb       = TIMER_0_wakeup_task_cb;
 	TIMER_0_task.mode     = TIMER_TASK_REPEAT;
-
-	timer_add_task(&TIMER_0, &TIMER_0_task);
-	timer_start(&TIMER_0);
+	timer_add_task(&TIMER_0, &TIMER_0_task);	
 }
 
 void peripherals_init()
@@ -90,8 +100,7 @@ void sensors_init()
 {
 	// This code MS5837 sensor initiation freezes when the sensor is not connected.
 #ifdef I2C_ENABLED
-	MS5837_init();
-	//uint8_t addr = find_I2C_address(); // Find the address of the sensor.
+	MS5837_init(0b1110110);
 #endif
 #ifdef LSM303_ENABLED
 	LSM303_init();
@@ -126,6 +135,7 @@ void dive_computer_init()
 #ifdef SOUND_ENABLED	 
 	sound_init();
 #endif
+	timer_start(&TIMER_0);
 }
 
 uint32_t get_time()
@@ -163,7 +173,7 @@ void run_dive_computer()
 	while(1)
 	{
 #ifdef I2C_ENABLED
-		MS5857_get_measurements(ADC_4096, &temp_pressure);
+		MS5857_get_measurements(DEFAULT_PRESSURE_ACCURACY, &temp_pressure);
 		depth = pressure_to_depth(temp_pressure.pressure * 10);
 #else
 		depth = 0;
@@ -195,9 +205,6 @@ void run_dive_computer()
 			current_dive_record.pressure = temp_pressure.pressure;
 			log_status = log_dive_record(&current_dive_record);
 		}
-#ifdef SOUND_ENABLED	
-		soundLogicRun();
-#endif
 
 #ifdef LSM303_ENABLED
 		status = read_accelerometer(&acceleration_vector);
