@@ -20,43 +20,42 @@
 struct io_descriptor *io_i2c;
 struct timer_task TIMER_0_task;
 
-
 volatile uint32_t ticks = 0; //Used for timing
 
 // TODO: Ideally we will separate this logic in the another file.
 #ifdef SOUND_ENABLED
-struct timer_task SOUND_task;
-uint32_t soundWaveTicks = 0;
-static const uint32_t soundToggleLimit = 3;
-bool soundIsOn = true; // For debug only. This logic is controlled by alarm settings.
+	struct timer_task SOUND_task;
+	uint32_t sound_ticks = 0;
+	static const uint32_t sound_toggle_limit = 3;
+	bool sound_on = true; // For debug only. This logic is controlled by alarm settings.
 
-void soundLogicRun() 
-{
-	if (soundIsOn) 
+	void sound_logic_run() 
 	{
-		soundWaveTicks += 1;
-		if (soundWaveTicks > soundToggleLimit) 
+		if (sound_on) 
 		{
-			uint8_t soundPin = getSoundPin();
-			gpio_toggle_pin_level(soundPin);
-			soundWaveTicks = 0;		
+			sound_ticks += 1;
+			if (sound_ticks > sound_toggle_limit) 
+			{
+				// TODO: Fix the method name for getSoundPin or make it a config function.
+				uint8_t sound_pin = getSoundPin();
+				gpio_toggle_pin_level(sound_pin);
+				sound_ticks = 0;		
+			}
 		}
 	}
-}
 
-static void SOUND_generation_task(const struct timer_task *const timer_task)
-{
-	soundLogicRun();
-}
+	static void SOUND_generation_task(const struct timer_task *const timer_task)
+	{
+		sound_logic_run();
+	}
 
-void sound_init() 
-{
-		SOUND_task.interval = 1;
-		SOUND_task.cb       = SOUND_generation_task;
-		SOUND_task.mode     = TIMER_TASK_REPEAT;
-		timer_add_task(&TIMER_0, &SOUND_task);
-}
-
+	void sound_init() 
+	{
+			SOUND_task.interval = 1;
+			SOUND_task.cb       = SOUND_generation_task;
+			SOUND_task.mode     = TIMER_TASK_REPEAT;
+			timer_add_task(&TIMER_0, &SOUND_task);
+	}
 #endif
 
 
@@ -77,7 +76,7 @@ static void TIMER_0_wakeup_task_cb(const struct timer_task *const timer_task)
 	ticks++;
 }
 
-void TIMER_0_Init(void)
+void TIMER_0_init(void)
 {
 	TIMER_0_task.interval = 10000;
 	TIMER_0_task.cb       = TIMER_0_wakeup_task_cb;
@@ -131,7 +130,7 @@ void dive_computer_init()
 	screen_init();
 	init_logger();
 	//log_erase(); // To start logging all over
-	TIMER_0_Init();
+	TIMER_0_init();
 #ifdef SOUND_ENABLED	 
 	sound_init();
 #endif
@@ -158,7 +157,6 @@ void run_dive_computer()
 	MS5837_measurements temp_pressure = {0, 0};
 	float_t depth = 0;
 	bool dive_in_progress = false;
-
 	struct time dive_time = {0, 0};
 	uint8_t dive_id = get_last_dive_id();
 	uint32_t start_dive_timestamp = 0;
@@ -225,26 +223,26 @@ void run_dive_computer()
 
 int main(void)
 {	
-	bool spiEnabled = false;
-	bool i2cEnabled = false;
-	bool soundEnabled = false;
+	bool spi_enabled = false;
+	bool i2c_enabled = false;
+	bool sound_enabled = false;
 		
 #ifdef SPI_DISPLAY_ENABLED
 	//Hack to make SPI working
 	uint8_t* spi_module_enable = 0x40006018;
 	*spi_module_enable = 0x00;
-	spiEnabled = true;
+	spi_enabled = true;
 #endif
 
 #ifdef I2C_ENABLED
-	i2cEnabled = true;
+	i2c_enabled = true;
 #endif
 
 #ifdef SOUND_ENABLED
-	soundEnabled = true;
+	sound_enabled = true;
 #endif
 
 	/* Initializes MCU, drivers and middleware */
-	system_init(spiEnabled, i2cEnabled, soundEnabled);
+	system_init(spi_enabled, i2c_enabled, sound_enabled);
 	run_dive_computer();
 }
