@@ -1,0 +1,191 @@
+<?xml version='1.0' encoding='ASCII'?>
+<package schemaVersion="1.0">
+  <content>
+    <resources target="ATBTLC1000WLCSP">
+      <resource type="atdf" subdir="atdf">
+        <includes pattern="ATBTLC1000WLCSP.atdf"/>
+      </resource>
+      <resource type="svd" subdir="svd">
+        <includes pattern="ATBTLC1000WLCSP.svd"/>
+      </resource>
+      <resource type="c.header" subdir="include">
+        <includes pattern="sam.h"/>
+        <includes pattern="btlc1000wlcsp.h"/>
+        <includes pattern="system_samb11.h"/>
+        <meta key="define" value="__BTLC1000WLCSP__"/>
+      </resource>
+      <resource type="c.source.exe.template" subdir="templates">
+        <includes pattern="main.c"/>
+      </resource>
+      <resource type="cpp.source.exe.template" subdir="templates">
+        <includes pattern="main.cpp"/>
+      </resource>
+      <resource type="c.source.lib.template" subdir="templates">
+        <includes pattern="library.c"/>
+      </resource>
+      <resource type="cpp.source.lib.template" subdir="templates">
+        <includes pattern="library.cpp"/>
+      </resource>
+      <resource type="gcc.source.startup" subdir="gcc">
+        <includes pattern="system_samb11.c"/>
+        <includes pattern="startup_samb11.c"/>
+      </resource>
+      <resource type="gcc.linker" subdir="gcc">
+        <includes pattern="samb11_sram.ld"/>
+      </resource>
+      <resource type="armcc.source.startup" subdir="armcc">
+        <includes pattern="system_samb11.c"/>
+        <includes pattern="startup_samb11.s"/>
+      </resource>
+      <resource type="tools.flashtool" subdir="tools">
+        <includes pattern="SambFlashTool.exe"/>
+        <includes pattern="cmsis_dap.dll"/>
+        <includes pattern="JLinkARM.dll"/>
+      </resource>
+      <resource type="tools.imagecreator" subdir="tools">
+        <includes pattern="SambImageCreator.exe"/>
+        <includes pattern="samb_makeimage.bat"/>
+        <includes pattern="LineFetcher.exe"/>
+      </resource>
+      <resource type="ble.patches" subdir="patches">
+        <includes pattern="patch.img"/>
+        <includes pattern="patch.hex"/>
+        <includes pattern="patch.ini"/>
+      </resource>
+      <resource type="studio.projproperties" subdir="studio">
+        <includes pattern="ProjectSettings.xml"/>
+      </resource>
+      <resource type="studio.debughooks" subdir="studio">
+        <includes pattern="debughooks.py"/>
+      </resource>
+    </resources>
+    <resources target="ATSAMB11ZR">
+      <resource type="atdf" subdir="atdf">
+        <includes pattern="ATSAMB11ZR.atdf"/>
+      </resource>
+      <resource type="svd" subdir="svd">
+        <includes pattern="ATSAMB11ZR.svd"/>
+      </resource>
+      <resource type="c.header" subdir="include">
+        <includes pattern="sam.h"/>
+        <includes pattern="samb11zr.h"/>
+        <includes pattern="system_samb11.h"/>
+        <meta key="define" value="__SAMB11ZR__"/>
+      </resource>
+      <resource type="c.source.exe.template" subdir="templates">
+        <includes pattern="main.c"/>
+      </resource>
+      <resource type="cpp.source.exe.template" subdir="templates">
+        <includes pattern="main.cpp"/>
+      </resource>
+      <resource type="c.source.lib.template" subdir="templates">
+        <includes pattern="library.c"/>
+      </resource>
+      <resource type="cpp.source.lib.template" subdir="templates">
+        <includes pattern="library.cpp"/>
+      </resource>
+      <resource type="gcc.source.startup" subdir="gcc">
+        <includes pattern="system_samb11.c"/>
+        <includes pattern="startup_samb11.c"/>
+      </resource>
+      <resource type="gcc.linker" subdir="gcc">
+        <includes pattern="samb11_sram.ld"/>
+      </resource>
+      <resource type="armcc.source.startup" subdir="armcc">
+        <includes pattern="system_samb11.c"/>
+        <includes pattern="startup_samb11.s"/>
+      </resource>
+      <resource type="tools.flashtool" subdir="tools">
+        <includes pattern="SambFlashTool.exe"/>
+        <includes pattern="cmsis_dap.dll"/>
+        <includes pattern="JLinkARM.dll"/>
+      </resource>
+      <resource type="tools.imagecreator" subdir="tools">
+        <includes pattern="SambImageCreator.exe"/>
+        <includes pattern="samb_makeimage.bat"/>
+        <includes pattern="LineFetcher.exe"/>
+      </resource>
+      <resource type="ble.patches" subdir="patches">
+        <includes pattern="patch.img"/>
+        <includes pattern="patch.hex"/>
+        <includes pattern="patch.ini"/>
+      </resource>
+      <resource type="studio.projproperties" subdir="studio">
+        <includes pattern="ProjectSettings.xml"/>
+      </resource>
+      <resource type="studio.debughooks" subdir="studio">
+        <includes pattern="debughooks.py"/>
+      </resource>
+    </resources>
+    <resources target="ATSAMB11G18A">
+      <resource type="atdf" subdir="atdf">
+        <includes pattern="ATSAMB11G18A.atdf"/>
+      </resource>
+      <resource type="svd" subdir="svd">
+        <includes pattern="ATSAMB11G18A.svd"/>
+      </resource>
+      <resource type="c.header" subdir="include">
+        <includes pattern="sam.h"/>
+        <includes pattern="samb11g18a.h"/>
+        <includes pattern="system_samb11.h"/>
+        <meta key="define" value="__SAMB11G18A__"/>
+      </resource>
+      <resource type="c.source.exe.template" subdir="templates">
+        <includes pattern="main.c"/>
+      </resource>
+      <resource type="cpp.source.exe.template" subdir="templates">
+        <includes pattern="main.cpp"/>
+      </resource>
+      <resource type="c.source.lib.template" subdir="templates">
+        <includes pattern="library.c"/>
+      </resource>
+      <resource type="cpp.source.lib.template" subdir="templates">
+        <includes pattern="library.cpp"/>
+      </resource>
+      <resource type="gcc.source.startup" subdir="gcc">
+        <includes pattern="system_samb11.c"/>
+        <includes pattern="startup_samb11.c"/>
+      </resource>
+      <resource type="gcc.linker" subdir="gcc">
+        <includes pattern="samb11_sram.ld"/>
+      </resource>
+      <resource type="armcc.source.startup" subdir="armcc">
+        <includes pattern="system_samb11.c"/>
+        <includes pattern="startup_samb11.s"/>
+      </resource>
+      <resource type="tools.flashtool" subdir="tools">
+        <includes pattern="SambFlashTool.exe"/>
+        <includes pattern="cmsis_dap.dll"/>
+        <includes pattern="JLinkARM.dll"/>
+      </resource>
+      <resource type="tools.imagecreator" subdir="tools">
+        <includes pattern="SambImageCreator.exe"/>
+        <includes pattern="samb_makeimage.bat"/>
+        <includes pattern="LineFetcher.exe"/>
+      </resource>
+      <resource type="ble.patches" subdir="patches">
+        <includes pattern="patch.img"/>
+        <includes pattern="patch.hex"/>
+        <includes pattern="patch.ini"/>
+      </resource>
+      <resource type="studio.projproperties" subdir="studio">
+        <includes pattern="ProjectSettings.xml"/>
+      </resource>
+      <resource type="studio.debughooks" subdir="studio">
+        <includes pattern="debughooks.py"/>
+      </resource>
+    </resources>
+  </content>
+  <pdsc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <releases>
+      <release version="2.2.BUILDNUMBER">Part Pack update for BluSDK Smart 5.1. Fixed Erase Command in FLASH download tool.</release>
+      <release version="2.1.157">Part Pack update for BluSDK Smart 5.1.</release>
+      <release version="2.1.129">Updated to BluSDK 2.7 with ULP support.</release>
+      <release version="2.1.0">Updated register naming conventions and PIO description.</release>
+      <release version="1.0.105">Initial public release, supported by Atmel Studio version 7.0.607 or later.</release>
+    </releases>
+    <prerequisite context="studio" component="Atmel Studio" version="7.0.610" target="ATSAMB11G18A"/>
+    <prerequisite context="studio" component="Atmel Studio" version="7.0.832" target="ATSAMB11ZR"/>
+    <prerequisite context="studio" component="Atmel Studio" version="7.0.832" target="ATBTLC1000WLCSP"/>
+  </pdsc>
+</package>
