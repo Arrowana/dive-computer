@@ -10,7 +10,9 @@ jobs:
           command: echo Hello, world.
       - run:
           name: Setup
-          command: apt-get install gcc-arm-none-eabi
+          command: |
+            apt-get update
+            apt-get install gcc-arm-none-eabi
       - run:
           name: Build
           command: make
